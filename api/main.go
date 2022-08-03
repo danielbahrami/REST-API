@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -25,22 +24,15 @@ func getPeople(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, people)
 }
 
-func personById(c *gin.Context) {
+func getPersonById(c *gin.Context) {
 	id := c.Param("id")
-	person, err := getPersonById(id)
-	if err != nil {
-		return
-	}
-	c.IndentedJSON(http.StatusOK, person)
-}
-
-func getPersonById(id string) (*person, error) {
-	for i, person := range people {
+	for _, person := range people {
 		if person.ID == id {
-			return &people[i], nil
+			c.IndentedJSON(http.StatusOK, person)
+			return
 		}
 	}
-	return nil, errors.New("person not found")
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "person not found"})
 }
 
 func addPerson(c *gin.Context) {
@@ -59,7 +51,7 @@ func addPerson(c *gin.Context) {
 func main() {
 	router := gin.Default()
 	router.GET("/people", getPeople)
-	router.GET("/people/:id", personById)
+	router.GET("/people/:id", getPersonById)
 	router.POST("/people", addPerson)
 	err := router.Run("localhost:8080")
 	if err != nil {
