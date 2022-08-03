@@ -19,3 +19,9 @@ var people = []person{
 	{ID: 4, FirstName: "Francesco", LastName: "Morman", Email: "fmorman3@rediff.com"},
 	{ID: 5, FirstName: "Ario", LastName: "Denerley", Email: "adenerley4@state.gov"},
 }
+
+func main() {
+	router := gin.Default()
+	router.GET("people", getPeople)
+	router.Run("localhost:8080")
+}
