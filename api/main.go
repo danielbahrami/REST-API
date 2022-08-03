@@ -41,5 +41,8 @@ func main() {
 	router := gin.Default()
 	router.GET("/people", getPeople)
 	router.POST("/people", addPerson)
-	router.Run("localhost:8080")
+	err := router.Run("localhost:8080")
+	if err != nil {
+		return
+	}
 }
