@@ -25,6 +25,15 @@ func getPeople(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, people)
 }
 
+func personById(c *gin.Context) {
+	id := c.Param("id")
+	person, err := getPersonById(id)
+	if err != nil {
+		return
+	}
+	c.IndentedJSON(http.StatusOK, person)
+}
+
 func getPersonById(id string) (*person, error) {
 	for i, person := range people {
 		if person.ID == id {
@@ -50,6 +59,7 @@ func addPerson(c *gin.Context) {
 func main() {
 	router := gin.Default()
 	router.GET("/people", getPeople)
+	router.GET("/people/:id", personById)
 	router.POST("/people", addPerson)
 	err := router.Run("localhost:8080")
 	if err != nil {
