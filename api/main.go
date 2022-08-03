@@ -1,5 +1,10 @@
 package main
 
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
 type person struct {
 	ID        int    `json:"id"`
 	FirstName string `json:"first_name"`
