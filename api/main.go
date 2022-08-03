@@ -25,6 +25,15 @@ func getPeople(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, people)
 }
 
+func getPersonById(id string) (*person, error) {
+	for i, person := range people {
+		if person.ID == id {
+			return &people[i], nil
+		}
+	}
+	return nil, errors.New("person not found")
+}
+
 func addPerson(c *gin.Context) {
 
 	var newPerson person
