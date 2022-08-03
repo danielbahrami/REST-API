@@ -20,6 +20,10 @@ var people = []person{
 	{ID: 5, FirstName: "Ario", LastName: "Denerley", Email: "adenerley4@state.gov"},
 }
 
+func getPeople(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, people)
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("people", getPeople)
