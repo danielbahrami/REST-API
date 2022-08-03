@@ -24,6 +24,19 @@ func getPeople(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, people)
 }
 
+func addPerson(c *gin.Context) {
+
+	var newPerson person
+
+	if err := c.BindJSON(&newPerson); err != nil {
+		return
+	}
+
+	people = append(people, newPerson)
+	c.IndentedJSON(http.StatusCreated, newPerson)
+
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("people", getPeople)
