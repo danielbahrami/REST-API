@@ -39,6 +39,7 @@ func addPerson(c *gin.Context) {
 
 func main() {
 	router := gin.Default()
-	router.GET("people", getPeople)
+	router.GET("/people", getPeople)
+	router.POST("/people", addPerson)
 	router.Run("localhost:8080")
 }
