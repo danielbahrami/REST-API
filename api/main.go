@@ -44,6 +44,18 @@ func createUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, newUser)
 }
 
+func deleteUser(c *gin.Context) {
+	id := c.Param("id")
+	for i, user := range users {
+		if user.ID == id {
+			users = append(users[:i], users[i+1:]...)
+			c.JSON(http.StatusOK, gin.H{"message": "user deleted"})
+			return
+		}
+	}
+	c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/users", getUsers)
