@@ -21,18 +21,18 @@ var users = []user{
 }
 
 func getUsers(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, users)
 }
 
 func getUserById(c *gin.Context) {
 	id := c.Param("id")
 	for _, user := range users {
 		if user.ID == id {
-			c.IndentedJSON(http.StatusOK, user)
+			c.JSON(http.StatusOK, user)
 			return
 		}
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found"})
+	c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
 }
 
 func createUser(c *gin.Context) {
@@ -41,7 +41,7 @@ func createUser(c *gin.Context) {
 		return
 	}
 	users = append(users, newUser)
-	c.IndentedJSON(http.StatusCreated, newUser)
+	c.JSON(http.StatusCreated, newUser)
 }
 
 func main() {
