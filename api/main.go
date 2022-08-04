@@ -51,7 +51,7 @@ func createUser(c *gin.Context) {
 		}
 	}
 	users = append(users, newUser)
-	c.JSON(http.StatusCreated, newUser)
+	c.JSON(http.StatusCreated, gin.H{"success": "user created"})
 }
 
 func deleteUser(c *gin.Context) {
