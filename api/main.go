@@ -44,6 +44,12 @@ func createUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "user details missing"})
 		return
 	}
+	for _, user := range users {
+		if newUser.ID == user.ID {
+			c.JSON(http.StatusConflict, gin.H{"error": "user already exists"})
+			return
+		}
+	}
 	users = append(users, newUser)
 	c.JSON(http.StatusCreated, newUser)
 }
