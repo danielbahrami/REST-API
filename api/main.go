@@ -40,6 +40,10 @@ func createUser(c *gin.Context) {
 	if err := c.BindJSON(&newUser); err != nil {
 		return
 	}
+	if len(newUser.ID) == 0 || len(newUser.FirstName) == 0 || len(newUser.LastName) == 0 || len(newUser.Email) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "user details missing"})
+		return
+	}
 	users = append(users, newUser)
 	c.JSON(http.StatusCreated, newUser)
 }
