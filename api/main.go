@@ -35,7 +35,7 @@ func getUserById(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found"})
 }
 
-func addUser(c *gin.Context) {
+func createUser(c *gin.Context) {
 	var newUser user
 	if err := c.BindJSON(&newUser); err != nil {
 		return
@@ -48,7 +48,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/users", getUsers)
 	router.GET("/users/:id", getUserById)
-	router.POST("/users", addUser)
+	router.POST("/users", createUser)
 	err := router.Run("localhost:8080")
 	if err != nil {
 		return
