@@ -32,7 +32,7 @@ func getUserById(c *gin.Context) {
 			return
 		}
 	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 }
 
 func createUser(c *gin.Context) {
@@ -41,7 +41,7 @@ func createUser(c *gin.Context) {
 		return
 	}
 	if len(newUser.ID) == 0 || len(newUser.FirstName) == 0 || len(newUser.LastName) == 0 || len(newUser.Email) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "user details missing"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user details missing"})
 		return
 	}
 	users = append(users, newUser)
@@ -53,11 +53,11 @@ func deleteUser(c *gin.Context) {
 	for i, user := range users {
 		if user.ID == id {
 			users = append(users[:i], users[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{"message": "user deleted"})
+			c.JSON(http.StatusOK, gin.H{"success": "user deleted"})
 			return
 		}
 	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 }
 
 func main() {
