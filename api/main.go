@@ -39,6 +39,27 @@ func createUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"success": "user created"})
 }
 
+func updateUser(c *gin.Context) {
+	id := c.Param("id")
+	var updatedUser user
+	if err := c.BindJSON(&updatedUser); err != nil {
+		return
+	}
+	for i := range users {
+		if users[i].ID == id {
+			if len(updatedUser.FirstName) == 0 || len(updatedUser.LastName) == 0 || len(updatedUser.Email) == 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "user details missing"})
+				return
+			}
+			users[i].FirstName = updatedUser.FirstName
+			users[i].LastName = updatedUser.LastName
+			users[i].Email = updatedUser.Email
+			c.JSON(http.StatusOK, gin.H{"success": "user updated"})
+			return
+		}
+	}
+}
+
 func deleteUser(c *gin.Context) {
 	id := c.Param("id")
 	for i, user := range users {
