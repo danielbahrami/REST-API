@@ -56,6 +56,7 @@ func main() {
 	router.GET("/users", getUsers)
 	router.GET("/users/:id", getUserById)
 	router.POST("/users", createUser)
+	router.PUT("/users/:id", updateUser)
 	router.DELETE("/users/:id", deleteUser)
 	err := router.Run("localhost:8080")
 	if err != nil {
