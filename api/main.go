@@ -58,6 +58,7 @@ func updateUser(c *gin.Context) {
 			return
 		}
 	}
+	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 }
 
 func deleteUser(c *gin.Context) {
