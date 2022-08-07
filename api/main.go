@@ -26,7 +26,7 @@ func createUser(c *gin.Context) {
 		return
 	}
 	if len(newUser.ID) == 0 || len(newUser.FirstName) == 0 || len(newUser.LastName) == 0 || len(newUser.Email) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user details missing"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user details required"})
 		return
 	}
 	for _, user := range users {
@@ -48,7 +48,7 @@ func updateUser(c *gin.Context) {
 	for i := range users {
 		if users[i].ID == id {
 			if len(updatedUser.FirstName) == 0 || len(updatedUser.LastName) == 0 || len(updatedUser.Email) == 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "user details missing"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "user details required"})
 				return
 			}
 			users[i].FirstName = updatedUser.FirstName
