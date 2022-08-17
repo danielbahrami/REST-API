@@ -89,7 +89,7 @@ func main() {
 	router.POST("/users", createUser)
 	router.PUT("/users/:id", updateUser)
 	router.DELETE("/users/:id", deleteUser)
-	err := router.Run("localhost:8080")
+	err := router.Run(":8080")
 	if err != nil {
 		return
 	}
