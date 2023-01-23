@@ -35,6 +35,28 @@ func init() {
 }
 
 func getUsers(c *gin.Context) {
+	usersCollection := db.Collection("users")
+
+	cur, err := usersCollection.Find(context.TODO(), bson.D{})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var users []User
+	for cur.Next(context.TODO()) {
+		var elem User
+		err := cur.Decode(&elem)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		users = append(users, elem)
+	}
+
 	c.JSON(http.StatusOK, users)
 }
 
