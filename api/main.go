@@ -127,11 +127,7 @@ func updateUser(c *gin.Context) {
 
 	usersCollection := db.Collection("users")
 	result, err := usersCollection.UpdateOne(context.TODO(), bson.M{"_id": objId}, bson.D{
-		{"$set", bson.D{
-			{"first_name", updatedUser.FirstName},
-			{"last_name", updatedUser.LastName},
-			{"email", updatedUser.Email},
-		}},
+		{"$set", updatedUser},
 	})
 
 	if err != nil {
