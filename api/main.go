@@ -83,22 +83,27 @@ func getUserById(c *gin.Context) {
 }
 
 func createUser(c *gin.Context) {
-	var newUser user
-	if err := c.BindJSON(&newUser); err != nil {
+	var user User
+	if err := c.BindJSON(&user); err != nil {
 		return
 	}
-	if len(newUser.ID) == 0 || len(newUser.FirstName) == 0 || len(newUser.LastName) == 0 || len(newUser.Email) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user details required"})
+
+	if len(user.FirstName) == 0 || len(user.LastName) == 0 || len(user.Email) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User details required"})
 		return
 	}
-	for _, user := range users {
-		if newUser.ID == user.ID {
-			c.JSON(http.StatusConflict, gin.H{"error": "user already exists"})
-			return
-		}
+
+	usersCollection := db.Collection("users")
+	result, err := usersCollection.InsertOne(context.TODO(), user)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	users = append(users, newUser)
-	c.JSON(http.StatusCreated, gin.H{"success": "user created"})
+
+	user.ID = result.InsertedID.(primitive.ObjectID)
+
+	c.JSON(http.StatusCreated, user)
 }
 
 func updateUser(c *gin.Context) {
