@@ -62,13 +62,24 @@ func getUsers(c *gin.Context) {
 
 func getUserById(c *gin.Context) {
 	id := c.Param("id")
-	for _, user := range users {
-		if user.ID == id {
-			c.JSON(http.StatusOK, user)
-			return
-		}
+
+	// Convert the id to a primitive.ObjectID
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
+	usersCollection := db.Collection("users")
+	result := usersCollection.FindOne(context.TODO(), bson.M{"_id": objId})
+
+	var user User
+	if err := result.Decode(&user); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func createUser(c *gin.Context) {
