@@ -150,14 +150,27 @@ func updateUser(c *gin.Context) {
 
 func deleteUser(c *gin.Context) {
 	id := c.Param("id")
-	for i, user := range users {
-		if user.ID == id {
-			users = append(users[:i], users[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{"success": "user deleted"})
-			return
-		}
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
+	usersCollection := db.Collection("users")
+	result, err := usersCollection.DeleteOne(context.TODO(), bson.M{"_id": objId})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if result.DeletedCount >= 1 {
+		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
+		return
+	} else {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
 }
 
 func main() {
