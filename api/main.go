@@ -18,7 +18,21 @@ type User struct {
 	Email     string             `json:"email" bson:"email"`
 }
 
-var users []user
+var mongoUri = os.Getenv("MONGO_URI")
+
+var client *mongo.Client
+var db *mongo.Database
+
+func init() {
+	var err error
+
+	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoUri))
+	if err != nil {
+		panic(err)
+	}
+
+	db = client.Database(os.Getenv("MONGO_DB"))
+}
 
 func getUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
