@@ -10,7 +10,7 @@ COPY . /src/
 
 RUN go mod download
 
-RUN --mount=type=cache,target=/root/.cache/go-build \GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o app ./api
+RUN --mount=type=cache,target=/root/.cache/go-build GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o app ./api
 
 FROM alpine
 

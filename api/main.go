@@ -1,85 +1,172 @@
 package main
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
+	"os"
 )
 
-type user struct {
-	ID        string `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
+type User struct {
+	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	FirstName string             `json:"first_name" bson:"first_name"`
+	LastName  string             `json:"last_name" bson:"last_name"`
+	Email     string             `json:"email" bson:"email"`
 }
 
-var users []user
+var mongoUri = os.Getenv("MONGO_URI")
+
+var client *mongo.Client
+var db *mongo.Database
+
+func init() {
+	var err error
+
+	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoUri))
+	if err != nil {
+		panic(err)
+	}
+
+	db = client.Database(os.Getenv("MONGO_DB"))
+}
 
 func getUsers(c *gin.Context) {
+	usersCollection := db.Collection("users")
+
+	cur, err := usersCollection.Find(context.TODO(), bson.D{})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var users []User
+	for cur.Next(context.TODO()) {
+		var elem User
+		err := cur.Decode(&elem)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		users = append(users, elem)
+	}
+
 	c.JSON(http.StatusOK, users)
 }
 
 func getUserById(c *gin.Context) {
 	id := c.Param("id")
-	for _, user := range users {
-		if user.ID == id {
-			c.JSON(http.StatusOK, user)
-			return
-		}
+
+	// Convert the id to a primitive.ObjectID
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
+	usersCollection := db.Collection("users")
+	result := usersCollection.FindOne(context.TODO(), bson.M{"_id": objId})
+
+	var user User
+	if err := result.Decode(&user); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func createUser(c *gin.Context) {
-	var newUser user
-	if err := c.BindJSON(&newUser); err != nil {
+	var user User
+	if err := c.BindJSON(&user); err != nil {
 		return
 	}
-	if len(newUser.ID) == 0 || len(newUser.FirstName) == 0 || len(newUser.LastName) == 0 || len(newUser.Email) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user details required"})
+
+	if len(user.FirstName) == 0 || len(user.LastName) == 0 || len(user.Email) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User details required"})
 		return
 	}
-	for _, user := range users {
-		if newUser.ID == user.ID {
-			c.JSON(http.StatusConflict, gin.H{"error": "user already exists"})
-			return
-		}
+
+	usersCollection := db.Collection("users")
+	result, err := usersCollection.InsertOne(context.TODO(), user)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	users = append(users, newUser)
-	c.JSON(http.StatusCreated, gin.H{"success": "user created"})
+
+	user.ID = result.InsertedID.(primitive.ObjectID)
+
+	c.JSON(http.StatusCreated, user)
 }
 
 func updateUser(c *gin.Context) {
 	id := c.Param("id")
-	var updatedUser user
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var updatedUser User
 	if err := c.BindJSON(&updatedUser); err != nil {
 		return
 	}
-	for i := range users {
-		if users[i].ID == id {
-			if len(updatedUser.FirstName) == 0 || len(updatedUser.LastName) == 0 || len(updatedUser.Email) == 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "user details required"})
-				return
-			}
-			users[i].FirstName = updatedUser.FirstName
-			users[i].LastName = updatedUser.LastName
-			users[i].Email = updatedUser.Email
-			c.JSON(http.StatusOK, gin.H{"success": "user updated"})
-			return
-		}
+
+	if len(updatedUser.FirstName) == 0 || len(updatedUser.LastName) == 0 || len(updatedUser.Email) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User details required"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
+	usersCollection := db.Collection("users")
+	result, err := usersCollection.UpdateOne(context.TODO(), bson.M{"_id": objId}, bson.D{
+		{"$set", updatedUser},
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if result.MatchedCount >= 1 {
+		c.JSON(http.StatusOK, gin.H{"message": "User updated"})
+		return
+	} else {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
 }
 
 func deleteUser(c *gin.Context) {
 	id := c.Param("id")
-	for i, user := range users {
-		if user.ID == id {
-			users = append(users[:i], users[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{"success": "user deleted"})
-			return
-		}
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+
+	usersCollection := db.Collection("users")
+	result, err := usersCollection.DeleteOne(context.TODO(), bson.M{"_id": objId})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if result.DeletedCount >= 1 {
+		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
+		return
+	} else {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
 }
 
 func main() {
