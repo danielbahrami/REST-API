@@ -1,4 +1,4 @@
-module REST-API
+module github.com/danielbahrami/gin-api
 
 go 1.19
 
